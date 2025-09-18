@@ -1,7 +1,7 @@
 return {
   {
     "stevearc/conform.nvim",
-    -- event = 'BufWritePre', -- uncomment for format on save
+    event = 'BufWritePre', -- uncomment for format on save
     opts = require "configs.conform",
   },
 
@@ -12,6 +12,18 @@ return {
       require "configs.lspconfig"
     end,
   },
+
+  {
+    'nvim-lua/plenary.nvim',
+  },
+
+  {
+    'nvim-pack/nvim-spectre',
+    dependencies = { 'nvim-lua/plenary.nvim' },
+    config = function()
+      require('spectre').setup()
+    end,
+  }
 
   -- test new blink
   -- { import = "nvchad.blink.lazyspec" },
