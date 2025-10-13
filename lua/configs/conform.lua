@@ -1,29 +1,29 @@
 local options = {
   formatters_by_ft = {
     lua = { "stylua" },
-    javascript = { "prettier" },
-    typescript = { "prettier" },
-    javascriptreact = { "prettier" },
-    typescriptreact = { "prettier" },
-    json = { "prettier" },
-    css = { "prettier" },
-    scss = { "prettier" },
-    less = { "prettier" },
-    html = { "prettier" },
-    markdown = { "prettier" },
-    yaml = { "prettier" },
+    javascript = { "prettier", "prettierd" },
+    typescript = { "prettier", "prettierd" },
+    javascriptreact = { "prettier", "prettierd" },
+    typescriptreact = { "prettier", "prettierd" },
+    json = { "prettier", "prettierd" },
+    css = { "prettier", "prettierd" },
+    scss = { "prettier", "prettierd" },
+    less = { "prettier", "prettierd" },
+    html = { "prettier", "prettierd" },
+    markdown = { "prettier", "prettierd" },
+    yaml = { "prettier", "prettierd" },
   },
 
   format_on_save = {
     -- These options will be passed to conform.format()
-    timeout_ms = 500,
+    timeout_ms = 2500,
     lsp_fallback = true,
   },
 
-  -- Prettier configuration
+  -- -- Prettier configuration - Updated to use prettier.config.js
   formatters = {
     prettier = {
-      prepend_args = { "--config", ".prettierrc" },
+      prepend_args = { "--prose-wrap", "always" },
     },
   },
 }
