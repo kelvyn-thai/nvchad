@@ -63,7 +63,14 @@ return {
         },
       })
       -- Disable default virtual text to use the enhanced version
-      vim.diagnostic.config({ virtual_text = false })
+      -- But keep signs and underline enabled for visual diagnostics
+      vim.diagnostic.config({ 
+        virtual_text = false,
+        signs = true,
+        underline = true,
+        update_in_insert = false,
+        severity_sort = true,
+      })
     end,
   },
 
@@ -85,6 +92,21 @@ return {
       opts.formatting = {
         format = require("tailwindcss-colorizer-cmp").formatter
       }
+    end,
+  },
+
+  -- Telescope configuration to show hidden files
+  {
+    "nvim-telescope/telescope.nvim",
+    opts = require "configs.telescope",
+  },
+
+  -- nvim-lint for running external linters like yamllint
+  {
+    "mfussenegger/nvim-lint",
+    event = { "BufReadPre", "BufNewFile" },
+    config = function()
+      require "configs.lint"
     end,
   },
 
