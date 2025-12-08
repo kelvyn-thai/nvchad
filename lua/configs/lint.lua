@@ -1,8 +1,13 @@
 local lint = require("lint")
 
+
+vim.env.ESLINT_D_PPID = vim.fn.getpid()
+
 lint.linters_by_ft = {
   yaml = { "yamllint" },
   yml = { "yamllint" },
+  javascript = {'eslint_d'},
+  typescript = {'eslint_d'},
 }
 
 -- Configure yamllint parser
