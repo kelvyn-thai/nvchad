@@ -1,4 +1,6 @@
-require("nvchad.configs.lspconfig").defaults()
+local nvchad_lsp = require("nvchad.configs.lspconfig")
+local default_config = nvchad_lsp.defaults()
+local default_on_attach = default_config and default_config.on_attach or nil
 
 local servers = {
   "html",
@@ -13,6 +15,7 @@ local servers = {
   "yaml-language-server",
   "yamlls",
   "eslint_d",
+  "eslint",
 }
 vim.lsp.enable(servers)
 
@@ -181,8 +184,14 @@ vim.lsp.config("eslint", {
     'astro',
     'htmlangular',
   },
-  workspace_required = true,
+  workspace_required = false,
   on_attach = function(client, bufnr)
+    -- Call default on_attach if available
+    if default_on_attach then
+      default_on_attach(client, bufnr)
+    end
+
+    -- Create LspEslintFixAll command
     vim.api.nvim_buf_create_user_command(bufnr, 'LspEslintFixAll', function()
       client:request_sync('workspace/executeCommand', {
         command = 'eslint.applyAllFixes',
@@ -194,6 +203,12 @@ vim.lsp.config("eslint", {
         },
       }, nil, bufnr)
     end, {})
+
+    -- Auto-fix on save (optional - uncomment if desired)
+    -- vim.api.nvim_create_autocmd("BufWritePre", {
+    --   buffer = bufnr,
+    --   command = "LspEslintFixAll",
+    -- })
   end,
   root_dir = function(bufnr, on_dir)
     -- The project root is where the LSP can be started from
@@ -219,19 +234,37 @@ vim.lsp.config("eslint", {
     -- Eslint used to support package.json files as config files, but it doesn't anymore.
     -- We keep this for backward compatibility.
     local filename = vim.api.nvim_buf_get_name(bufnr)
-    local eslint_config_files_with_package_json =
-      util.insert_package_json(eslint_config_files, 'eslintConfig', filename)
-    local is_buffer_using_eslint = vim.fs.find(eslint_config_files_with_package_json, {
-      path = filename,
-      type = 'file',
-      limit = 1,
-      upward = true,
-      stop = vim.fs.dirname(project_root),
-    })[1]
-    if not is_buffer_using_eslint then
+    if not filename or filename == "" then
+      on_dir(project_root)
       return
     end
 
+    local eslint_config_files_with_package_json =
+      util.insert_package_json(eslint_config_files, 'eslintConfig', filename)
+    
+    -- Search for ESLint config from the file's directory up to the project root
+    -- Use project_root as the stop point (inclusive), not its parent
+    local is_buffer_using_eslint = vim.fs.find(eslint_config_files_with_package_json, {
+      path = vim.fs.dirname(filename),
+      type = 'file',
+      limit = 1,
+      upward = true,
+      stop = project_root,
+    })[1]
+    
+    -- Also check directly in project root
+    if not is_buffer_using_eslint then
+      for _, config_file in ipairs(eslint_config_files_with_package_json) do
+        local config_path = project_root .. '/' .. config_file
+        if vim.fn.filereadable(config_path) == 1 then
+          is_buffer_using_eslint = config_path
+          break
+        end
+      end
+    end
+
+    -- If no config found, still try to start (ESLint might use default config or package.json)
+    -- This allows ESLint to work even if config detection fails
     on_dir(project_root)
   end,
   -- Refer to https://github.com/Microsoft/vscode-eslint#settings-options for documentation.
@@ -279,7 +312,7 @@ vim.lsp.config("eslint", {
     if root_dir then
       config.settings = config.settings or {}
       config.settings.workspaceFolder = {
-        uri = root_dir,
+        uri = vim.uri_from_fname(root_dir),
         name = vim.fn.fnamemodify(root_dir, ':t'),
       }
 
