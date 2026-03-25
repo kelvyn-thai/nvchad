@@ -76,3 +76,21 @@ map("n", "<leader>t]", function() vim.diagnostic.goto_next() end, { desc = "Next
 
 -- Also try the LazyVim default keybinding
 map("n", "<leader>ud", toggle_diagnostics, { desc = "Toggle diagnostics (LazyVim style)" })
+
+-- Copy path to system clipboard (+ register); echo so you see what was copied
+local function yank_to_clipboard(msg, text)
+  vim.fn.setreg("+", text)
+  print(msg .. text)
+end
+
+map("n", "<leader>fp", function()
+  yank_to_clipboard("Yanked full path: ", vim.fn.expand "%:p")
+end, { desc = "Yank full file path (+echo)" })
+
+map("n", "<leader>fd", function()
+  yank_to_clipboard("Yanked file dir: ", vim.fn.expand "%:p:h")
+end, { desc = "Yank buffer's directory (+echo)" })
+
+map("n", "<leader>fc", function()
+  yank_to_clipboard("Yanked cwd: ", vim.fn.getcwd())
+end, { desc = "Yank Neovim cwd (+echo)" })
